@@ -3,681 +3,1129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoetraNuri ERP | Logistics Pro</title>
+    <title>PoetraNuri ERP System | Premium Enterprise Solution</title>
     
+    <!-- Meta Tags for SEO -->
+    <meta name="description" content="Sistem ERP modern untuk manajemen gudang, keuangan, HRD, dan penjualan.">
+    <meta name="author" content="Gemini AI for PoetraNuri Group">
+
+    <!-- CSS Frameworks & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- JS Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: { navy: '#0f172a', gold: '#d4af37' },
-                    borderRadius: { '4xl': '2rem', '5xl': '2.5rem' }
+                    colors: {
+                        navy: {
+                            50: '#f0f3f9',
+                            100: '#dce4f1',
+                            500: '#001f3f',
+                            600: '#001a35',
+                            700: '#00152b',
+                            800: '#000f1f',
+                            900: '#00050a',
+                        },
+                        gold: {
+                            400: '#EBCB8B',
+                            500: '#D4AF37',
+                            600: '#B8962E',
+                            700: '#9A7D26',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'premium': '0 10px 30px -5px rgba(0, 31, 63, 0.1)',
+                        'gold-glow': '0 0 15px rgba(212, 175, 55, 0.3)',
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        :root { --navy: #0f172a; --gold: #d4af37; }
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; overflow-x: hidden; }
-        .sidebar-active { background: rgba(212, 175, 55, 0.15); border-right: 4px solid var(--gold); color: var(--gold) !important; }
-        .glass { backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        #reader { border-radius: 20px; overflow: hidden; border: 4px solid #f59e0b !important; }
-        .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-    </style>
-</head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300">
-
-    <div id="mainLoader" class="loader-overlay">
-        <div class="text-center">
-            <div class="w-16 h-16 border-4 border-slate-700 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <h2 class="text-white font-black tracking-widest text-xl uppercase">PoetraNuri ERP</h2>
-        </div>
-    </div>
-
-    <div id="app" class="hidden min-h-screen flex flex-col">
-        
-        <div id="loginPage" class="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-5xl shadow-2xl p-10">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-amber-500 rounded-3xl mx-auto flex items-center justify-center text-white text-2xl font-black mb-4">P</div>
-                    <h2 class="text-2xl font-black dark:text-white uppercase">Workspace Access</h2>
-                    <p class="text-slate-500 text-sm mt-2">Masuk dengan kode akses 12345</p>
-                </div>
-                <form id="loginForm" class="space-y-4">
-                    <select id="loginRole" class="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 dark:text-white">
-                        <option value="Administrator">Administrator</option>
-                        <option value="Staff Gudang">Warehouse / Logistics</option>
-                        <option value="Finance">Finance</option>
-                    </select>
-                    <input type="password" id="loginPass" value="12345" class="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 dark:text-white" placeholder="Passcode">
-                    <button type="submit" class="w-full py-5 bg-amber-500 text-white rounded-2xl font-black text-lg shadow-lg shadow-amber-500/20">SIGN IN</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="mainUI" class="hidden flex flex-1 overflow-hidden h-screen">
-            <!-- Sidebar -->
-            <aside id="sidebar" class="w-72 bg-slate-950 text-slate-400 flex flex-col transition-all duration-300 no-print z-20">
-                <div class="p-8 flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white font-black">P</div>
-                    <span class="text-white font-bold text-xl tracking-tight sidebar-txt">PoetraNuri</span>
-                </div>
-
-                <nav class="flex-1 overflow-y-auto px-4 space-y-1 custom-scroll">
-                    <a href="#" onclick="route('dashboard')" data-route="dashboard" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-chart-pie w-5"></i> <span class="sidebar-txt">Dashboard</span>
-                    </a>
-                    
-                    <p class="px-4 text-[10px] font-black uppercase text-slate-600 mb-2 mt-6 sidebar-txt">Supply Chain</p>
-                    <a href="#" onclick="route('logistics')" data-route="logistics" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-barcode w-5"></i> <span class="sidebar-txt">Scan Logistik</span>
-                    </a>
-                    <a href="#" onclick="route('warehouse')" data-route="warehouse" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-boxes w-5"></i> <span class="sidebar-txt">Warehouse</span>
-                    </a>
-
-                    <p class="px-4 text-[10px] font-black uppercase text-slate-600 mb-2 mt-6 sidebar-txt">Sales</p>
-                    <a href="#" onclick="route('sales')" data-route="sales" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-cash-register w-5"></i> <span class="sidebar-txt">Sales POS</span>
-                    </a>
-                    <a href="#" onclick="route('sales-report')" data-route="sales-report" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-file-invoice-dollar w-5"></i> <span class="sidebar-txt">Laporan Penjualan</span>
-                    </a>
-
-                    <p class="px-4 text-[10px] font-black uppercase text-slate-600 mb-2 mt-6 sidebar-txt">Corporate</p>
-                    <a href="#" onclick="route('hrd')" data-route="hrd" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-user-tie w-5"></i> <span class="sidebar-txt">HRD & Payroll</span>
-                    </a>
-                    <a href="#" onclick="route('finance')" data-route="finance" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all">
-                        <i class="fa fa-vault w-5"></i> <span class="sidebar-txt">Finance</span>
-                    </a>
-
-                    <a href="#" onclick="route('settings')" data-route="settings" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-2xl hover:bg-slate-900 transition-all mt-6">
-                        <i class="fa fa-cog w-5"></i> <span class="sidebar-txt">Settings</span>
-                    </a>
-                </nav>
-
-                <div class="p-6 border-t border-slate-900">
-                    <button onclick="logout()" class="w-full py-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl flex items-center justify-center space-x-2 font-bold transition-all">
-                        <i class="fa fa-power-off"></i> <span class="sidebar-txt">Logout</span>
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Main Workspace -->
-            <main class="flex-1 flex flex-col overflow-hidden relative">
-                <header class="h-20 bg-white/80 dark:bg-slate-900/80 glass border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 z-10 no-print">
-                    <div class="flex items-center space-x-4">
-                        <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">
-                            <i class="fa fa-bars text-xl"></i>
-                        </button>
-                        <h2 id="pageTitle" class="text-lg font-black text-slate-800 dark:text-white uppercase">Dashboard</h2>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl p-1">
-                            <select id="globalDateFilter" onchange="applyGlobalFilter()" class="bg-transparent border-none outline-none px-4 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="last7">Last 7 Days</option>
-                                <option value="last30">Last 30 Days</option>
-                                <option value="thisMonth">This Month</option>
-                                <option value="thisYear">This Year</option>
-                                <option value="custom">Custom Range</option>
-                            </select>
-                        </div>
-                        
-                        <div id="customDateRange" class="hidden flex items-center space-x-2">
-                            <input type="date" id="dateFrom" class="text-xs border rounded-lg px-2 py-1 dark:bg-slate-800 dark:border-slate-700">
-                            <input type="date" id="dateTo" class="text-xs border rounded-lg px-2 py-1 dark:bg-slate-800 dark:border-slate-700">
-                            <button onclick="applyGlobalFilter()" class="bg-slate-900 text-white p-1 rounded-lg"><i class="fa fa-check text-[10px]"></i></button>
-                        </div>
-
-                        <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-500">
-                            <i id="themeIcon" class="fa fa-moon"></i>
-                        </button>
-                        
-                        <div class="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
-                        <div class="flex items-center space-x-3">
-                            <div class="text-right hidden sm:block">
-                                <p id="userNameDisplay" class="text-xs font-black text-slate-800 dark:text-white">User</p>
-                                <p id="userRoleDisplay" class="text-[10px] text-amber-500 font-bold uppercase">Role</p>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <div id="content" class="flex-1 overflow-y-auto p-8 custom-scroll bg-slate-50 dark:bg-slate-950 transition-colors">
-                    <!-- Dynamic Content -->
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
-        <div id="modalBox" class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-5xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
-            <div id="modalContent"></div>
-        </div>
-    </div>
-
-    <script>
-        const DB = {
-            init: () => {
-                const keys = ['warehouse', 'sales', 'employees', 'finance', 'purchasing', 'receipts'];
-                keys.forEach(k => { if(!localStorage.getItem(`pn_${k}`)) localStorage.setItem(`pn_${k}`, JSON.stringify([])); });
-            },
-            get: (key) => JSON.parse(localStorage.getItem(`pn_${key}`)) || [],
-            set: (key, data) => localStorage.setItem(`pn_${key}`, JSON.stringify(data)),
-            add: (key, obj) => {
-                const data = DB.get(key);
-                obj.id = Date.now();
-                obj.createdAt = new Date().toISOString();
-                data.push(obj);
-                DB.set(key, data);
-                return obj;
-            },
-            delete: (key, id) => {
-                const data = DB.get(key).filter(item => item.id != id);
-                DB.set(key, data);
-            }
-        };
-
-        let state = {
-            currentPage: 'dashboard',
-            currentUser: null,
-            filter: 'today',
-            dateRange: { from: null, to: null },
-            theme: 'light',
-            cart: [],
-            scanner: null,
-            lastScannedResi: '',
-            lastScanTime: 0,
-            logFilters: { time: '', resi: '', courier: '', status: '' }
-        };
-
-        const AudioNotify = {
-            ctx: null,
-            init() { if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-            play(type) {
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                if(type === 'success') {
-                    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-                    osc.type = 'sine';
-                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-                    osc.start(); osc.stop(this.ctx.currentTime + 0.2);
-                } else {
-                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-                    osc.type = 'sawtooth';
-                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
-                    osc.start(); osc.stop(this.ctx.currentTime + 0.4);
-                }
-            }
-        };
-
-        function route(page) {
-            if(state.scanner) { stopScanner(); }
-            state.currentPage = page;
-            const container = document.getElementById('content');
-            const title = document.getElementById('pageTitle');
-            
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('sidebar-active'));
-            const activeNav = document.querySelector(`[data-route="${page}"]`);
-            if(activeNav) activeNav.classList.add('sidebar-active');
-
-            title.innerText = page.replace('-', ' ');
-            container.innerHTML = `<div class="flex justify-center py-20"><div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div></div>`;
-
-            setTimeout(() => {
-                switch(page) {
-                    case 'dashboard': renderDashboard(container); break;
-                    case 'logistics': renderLogistics(container); break;
-                    case 'warehouse': renderWarehouse(container); break;
-                    case 'sales': renderSales(container); break;
-                    case 'sales-report': renderSalesReport(container); break;
-                    case 'hrd': renderHRD(container); break;
-                    case 'finance': renderFinance(container); break;
-                    case 'settings': renderSettings(container); break;
-                }
-            }, 300);
+        :root {
+            --sidebar-width: 280px;
         }
 
-        function renderLogistics(container) {
-            const allData = filterByDate(DB.get('receipts'));
-            
-            // Apply column filters
-            const filteredData = allData.filter(item => {
-                const dateStr = new Date(item.createdAt).toLocaleString().toLowerCase();
-                const resiStr = item.resiNumber.toLowerCase();
-                const courierStr = item.courier.toLowerCase();
-                const statusStr = item.status.toLowerCase();
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: #D4AF37 transparent;
+        }
 
-                return dateStr.includes(state.logFilters.time.toLowerCase()) &&
-                       resiStr.includes(state.logFilters.resi.toLowerCase()) &&
-                       courierStr.includes(state.logFilters.courier.toLowerCase()) &&
-                       statusStr.includes(state.logFilters.status.toLowerCase());
-            });
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
 
-            container.innerHTML = `
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    <div class="space-y-6">
-                        <div class="bg-white dark:bg-slate-900 p-8 rounded-4xl border dark:border-slate-800 shadow-sm">
-                            <h3 class="text-xl font-black uppercase text-slate-800 dark:text-white mb-6">Continuous Scanner</h3>
-                            <div id="reader" class="w-full bg-slate-100 dark:bg-slate-800 min-h-[300px] mb-4 flex items-center justify-center text-slate-400">
-                                <i class="fa fa-camera text-4xl"></i>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button onclick="startScanner()" id="startBtn" class="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-500/20">ACTIVATE CAMERA</button>
-                                <button onclick="stopScanner()" id="stopBtn" class="hidden flex-1 py-4 bg-rose-500 text-white rounded-2xl font-black">STOP</button>
-                            </div>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-item-active {
+            background: linear-gradient(90deg, #001f3f 0%, #003366 100%);
+            color: #D4AF37 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8962E 100%);
+        }
+
+        .navy-gradient {
+            background: linear-gradient(135deg, #001f3f 0%, #000a14 100%);
+        }
+
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.5s ease forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* Loader */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: #001f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        .loader-logo {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        /* Mobile specific */
+        @media (max-width: 768px) {
+            #sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            #sidebar.active { transform: translateX(0); }
+            .content-shifted { margin-left: 0 !important; }
+        }
+        
+        .no-print { @media print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-navy-900 overflow-x-hidden">
+
+    <div id="loader-overlay">
+        <div class="text-center">
+            <div class="mb-4 relative">
+                <i class="fas fa-crown text-6xl text-gold-500 loader-logo"></i>
+                <div class="absolute inset-0 bg-gold-500 blur-2xl opacity-20"></div>
+            </div>
+            <h1 class="text-white text-2xl font-extrabold tracking-widest uppercase mb-2">PoetraNuri</h1>
+            <p class="text-gold-500 text-xs font-bold tracking-[0.3em] uppercase opacity-60">Enterprise ERP System</p>
+            <div class="mt-8 w-48 h-1 bg-white/10 mx-auto rounded-full overflow-hidden">
+                <div class="h-full bg-gold-500 animate-[loading_2s_infinite]" style="width: 30%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-page" class="hidden min-h-screen flex items-center justify-center p-6 navy-gradient bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+        <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up">
+            <!-- Left Side: Branding -->
+            <div class="hidden md:flex flex-col justify-center p-12 navy-gradient text-white relative">
+                <div class="z-10">
+                    <i class="fas fa-gem text-5xl text-gold-500 mb-6"></i>
+                    <h2 class="text-4xl font-bold mb-4 leading-tight">Masa Depan Bisnis Anda Dimulai di Sini.</h2>
+                    <p class="text-navy-100 opacity-80 mb-8">PoetraNuri ERP menyediakan ekosistem terintegrasi untuk mengelola aset, keuangan, dan SDM dengan standar global.</p>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex -space-x-2">
+                            <img src="https://i.pravatar.cc/150?u=1" class="w-8 h-8 rounded-full border-2 border-navy-700">
+                            <img src="https://i.pravatar.cc/150?u=2" class="w-8 h-8 rounded-full border-2 border-navy-700">
+                            <img src="https://i.pravatar.cc/150?u=3" class="w-8 h-8 rounded-full border-2 border-navy-700">
                         </div>
+                        <span class="text-xs font-medium text-navy-200">+500 Perusahaan Bergabung</span>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 right-0 w-64 h-64 bg-gold-500/10 rounded-full blur-3xl -mr-20 -mb-20"></div>
+            </div>
 
-                        <div class="bg-white dark:bg-slate-900 p-8 rounded-4xl border dark:border-slate-800 shadow-sm">
-                            <h3 class="text-sm font-black uppercase text-slate-400 mb-4">Manual Input</h3>
-                            <div class="space-y-4">
-                                <input type="text" id="resiInput" placeholder="Ketik nomor resi..." class="w-full p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 font-mono" onkeypress="if(event.key==='Enter') processResiManual()">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <select id="resiCourier" class="p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none"><option>JNE</option><option>J&T</option><option>Sicepat</option><option>Ninja</option></select>
-                                    <select id="resiStatus" class="p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none"><option>IN</option><option>OUT</option></select>
-                                </div>
-                                <button onclick="processResiManual()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold">SUBMIT</button>
-                            </div>
+            <!-- Right Side: Login Form -->
+            <div class="p-8 md:p-12">
+                <div class="text-center mb-10">
+                    <h3 class="text-2xl font-bold text-navy-900">Selamat Datang</h3>
+                    <p class="text-slate-500 text-sm">Masuk ke pusat kendali bisnis Anda</p>
+                </div>
+
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Role Akses</label>
+                        <select id="login-role" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-gold-500 focus:ring-4 focus:ring-gold-500/10 outline-none transition bg-slate-50 font-medium">
+                            <option value="Admin">Administrator</option>
+                            <option value="Owner">Owner (Pemilik)</option>
+                            <option value="Finance">Finance / Accounting</option>
+                            <option value="HRD">HRD Manager</option>
+                            <option value="Staff">Staff Gudang</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Username</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="login-user" value="admin" class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-gold-500 focus:ring-4 focus:ring-gold-500/10 outline-none transition bg-slate-50" placeholder="admin">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="password" id="login-pass" value="admin" class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-gold-500 focus:ring-4 focus:ring-gold-500/10 outline-none transition bg-slate-50" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" checked class="w-4 h-4 text-gold-500 rounded border-slate-300">
+                            <span class="text-xs text-slate-500">Ingat Saya</span>
+                        </label>
+                        <a href="#" class="text-xs font-bold text-gold-600 hover:text-gold-700">Lupa Password?</a>
+                    </div>
+                    <button type="submit" class="w-full py-4 rounded-xl gold-gradient text-white font-bold text-lg shadow-gold-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 uppercase tracking-widest">
+                        Masuk Sistem
+                    </button>
+                </form>
+                
+                <div class="mt-12 text-center text-slate-400 text-xs font-medium">
+                    &copy; 2024 PoetraNuri Group. Premium Enterprise Solution.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-layout" class="hidden min-h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 h-screen w-72 bg-navy-900 text-white z-50 flex flex-col transition-all duration-300 border-r border-white/5">
+            <!-- Sidebar Header -->
+            <div class="p-8 flex items-center space-x-4 border-b border-white/5">
+                <div class="w-12 h-12 gold-gradient rounded-2xl flex items-center justify-center shadow-gold-glow">
+                    <i class="fas fa-crown text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="font-extrabold text-xl tracking-tight leading-none">POETRANURI</h2>
+                    <span class="text-[10px] font-bold text-gold-500 uppercase tracking-[0.2em] opacity-80">ERP System V2</span>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-6 space-y-2">
+                <p class="px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Main Core</p>
+                <nav id="sidebar-nav" class="space-y-1">
+                    <!-- Dynamic Menu Items -->
+                </nav>
+
+                <div class="pt-6">
+                    <p class="px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Enterprise</p>
+                    <div class="space-y-1">
+                        <a href="#" onclick="switchTab('finance')" class="nav-link group flex items-center space-x-3 px-4 py-3 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                            <i class="fas fa-wallet w-6 text-center text-gold-500"></i>
+                            <span class="font-semibold text-sm">Finance & Accounting</span>
+                        </a>
+                        <a href="#" onclick="switchTab('hrd')" class="nav-link group flex items-center space-x-3 px-4 py-3 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                            <i class="fas fa-users-gear w-6 text-center text-gold-500"></i>
+                            <span class="font-semibold text-sm">HRD & Payroll</span>
+                        </a>
+                        <a href="#" onclick="switchTab('reports')" class="nav-link group flex items-center space-x-3 px-4 py-3 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                            <i class="fas fa-file-invoice-dollar w-6 text-center text-gold-500"></i>
+                            <span class="font-semibold text-sm">Financial Reports</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-6 border-t border-white/5">
+                <button onclick="logout()" class="w-full flex items-center justify-center space-x-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-3 rounded-2xl transition-all font-bold text-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Keluar Sistem</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="ml-72 min-h-screen transition-all duration-300" id="main-panel">
+            <!-- Header/Navbar -->
+            <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <button id="toggle-sidebar" class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h3 id="current-tab-title" class="text-xl font-extrabold text-navy-900 leading-none mb-1">Dashboard Analitik</h3>
+                        <p id="current-tab-subtitle" class="text-xs text-slate-400 font-medium">Overview performa bisnis realtime hari ini</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <!-- Search -->
+                    <div class="hidden lg:flex items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-2 w-64 focus-within:ring-2 focus-within:ring-gold-500/20 transition-all">
+                        <i class="fas fa-search text-slate-400 mr-2"></i>
+                        <input type="text" placeholder="Cari data..." class="bg-transparent text-sm outline-none w-full">
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative group cursor-pointer">
+                        <div class="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center hover:bg-navy-50 transition-colors">
+                            <i class="fas fa-bell text-navy-500"></i>
+                            <span class="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
                         </div>
                     </div>
 
-                    <div class="xl:col-span-2 bg-white dark:bg-slate-900 rounded-4xl border dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
-                        <div class="p-8 border-b dark:border-slate-800 flex justify-between items-center">
-                            <h3 class="text-xl font-black uppercase text-slate-800 dark:text-white">Logistics Data History</h3>
-                            <button onclick="exportCSV('logTable', 'logistics_report.csv')" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold dark:text-white">EXPORT CSV</button>
+                    <!-- User Profile -->
+                    <div class="flex items-center space-x-3 pl-6 border-l border-slate-100">
+                        <div class="text-right hidden sm:block">
+                            <p id="user-display-name" class="text-sm font-bold text-navy-900 leading-none mb-1">Naufal Putra</p>
+                            <p id="user-display-role" class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest">CEO / Founder</p>
+                        </div>
+                        <img id="user-display-avatar" src="https://ui-avatars.com/api/?name=Naufal+Putra&background=001f3f&color=fff" class="w-10 h-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Sections (Content) -->
+            <div id="content-container" class="p-8">
+                <!-- Tab: Dashboard -->
+                <div id="tab-dashboard" class="tab-content animate-fade-in space-y-8">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-3xl shadow-premium border border-slate-50 group hover:border-gold-500/50 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-money-bill-trend-up text-xl"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full">+12.5%</span>
+                            </div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Penjualan</p>
+                            <h4 id="kpi-sales" class="text-2xl font-black text-navy-900">Rp 0</h4>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl shadow-premium border border-slate-50 group hover:border-gold-500/50 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-boxes-stacked text-xl"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full">Optimal</span>
+                            </div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Stok Produk</p>
+                            <h4 id="kpi-inventory" class="text-2xl font-black text-navy-900">0 Unit</h4>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl shadow-premium border border-slate-50 group hover:border-gold-500/50 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-receipt text-xl"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">8% Menurun</span>
+                            </div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Biaya Pengeluaran</p>
+                            <h4 id="kpi-expense" class="text-2xl font-black text-navy-900">Rp 0</h4>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl shadow-premium border border-slate-50 group hover:border-gold-500/50 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-user-check text-xl"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-purple-500 bg-purple-50 px-2 py-1 rounded-full">All Present</span>
+                            </div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Karyawan</p>
+                            <h4 id="kpi-employees" class="text-2xl font-black text-navy-900">0 Orang</h4>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-8 rounded-[2.5rem] shadow-premium border border-slate-50">
+                            <div class="flex items-center justify-between mb-8">
+                                <h4 class="font-extrabold text-navy-900">Performa Penjualan Bulanan</h4>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1">
+                                        <div class="w-3 h-3 rounded-full gold-gradient"></div>
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">Revenue</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="chart-sales-main"></div>
+                        </div>
+                        <div class="bg-white p-8 rounded-[2.5rem] shadow-premium border border-slate-50">
+                            <div class="flex items-center justify-between mb-8">
+                                <h4 class="font-extrabold text-navy-900">Alokasi Kas Per Departemen</h4>
+                                <button class="text-xs font-bold text-gold-600">Download Report <i class="fas fa-chevron-right ml-1"></i></button>
+                            </div>
+                            <div id="chart-pie-allocation"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Table -->
+                    <div class="bg-white rounded-[2.5rem] shadow-premium border border-slate-50 overflow-hidden">
+                        <div class="p-8 flex items-center justify-between">
+                            <h4 class="font-extrabold text-navy-900">Aktivitas Transaksi Terbaru</h4>
+                            <div class="flex space-x-2">
+                                <button class="bg-slate-50 px-4 py-2 rounded-xl text-xs font-bold text-navy-500 hover:bg-slate-100 transition">Lihat Semua</button>
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
-                            <table id="logTable" class="w-full text-left">
-                                <thead class="bg-slate-50 dark:bg-slate-800 text-[10px] font-black text-slate-400 uppercase">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 border-y border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
                                     <tr>
-                                        <th class="px-8 py-4">Time</th>
-                                        <th class="px-8 py-4">Resi No.</th>
-                                        <th class="px-8 py-4">Courier</th>
+                                        <th class="px-8 py-4">ID Transaksi</th>
                                         <th class="px-8 py-4">Status</th>
-                                        <th class="px-8 py-4 text-center">Delete</th>
-                                    </tr>
-                                    <tr class="bg-white dark:bg-slate-900 border-b dark:border-slate-800">
-                                        <td class="px-4 py-2"><input type="text" value="${state.logFilters.time}" oninput="updateLogFilter('time', this.value)" placeholder="Search Time..." class="w-full px-2 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 rounded-lg outline-none"></td>
-                                        <td class="px-4 py-2"><input type="text" value="${state.logFilters.resi}" oninput="updateLogFilter('resi', this.value)" placeholder="Search Resi..." class="w-full px-2 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 rounded-lg outline-none"></td>
-                                        <td class="px-4 py-2"><input type="text" value="${state.logFilters.courier}" oninput="updateLogFilter('courier', this.value)" placeholder="Search Courier..." class="w-full px-2 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 rounded-lg outline-none"></td>
-                                        <td class="px-4 py-2"><input type="text" value="${state.logFilters.status}" oninput="updateLogFilter('status', this.value)" placeholder="Search Status..." class="w-full px-2 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 rounded-lg outline-none"></td>
-                                        <td></td>
+                                        <th class="px-8 py-4">Customer / Vendor</th>
+                                        <th class="px-8 py-4">Nominal</th>
+                                        <th class="px-8 py-4 text-right">Tanggal</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y dark:divide-slate-800">
-                                    ${filteredData.map(r => `
-                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                            <td class="px-8 py-4 text-[10px] text-slate-400">${new Date(r.createdAt).toLocaleString()}</td>
-                                            <td class="px-8 py-4 text-xs font-black dark:text-white uppercase">${r.resiNumber}</td>
-                                            <td class="px-8 py-4 text-[10px] uppercase font-bold text-amber-600">${r.courier}</td>
-                                            <td class="px-8 py-4">
-                                                <span class="px-2 py-1 rounded-md text-[9px] font-black ${r.status === 'IN' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}">${r.status}</span>
-                                            </td>
-                                            <td class="px-8 py-4 text-center">
-                                                <button onclick="deleteItem('receipts', ${r.id})" class="text-slate-300 hover:text-rose-500 transition-colors"><i class="fa fa-trash text-xs"></i></button>
-                                            </td>
-                                        </tr>
-                                    `).reverse().join('') || '<tr><td colspan="5" class="p-10 text-center text-slate-400">Data not found</td></tr>'}
+                                <tbody id="dashboard-recent-tx" class="divide-y divide-slate-50">
+                                    <!-- Dynamic -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            `;
-        }
 
-        function updateLogFilter(key, val) {
-            state.logFilters[key] = val;
-            renderLogistics(document.getElementById('content'));
-        }
-
-        function startScanner() {
-            AudioNotify.init();
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('stopBtn').classList.remove('hidden');
-
-            state.scanner = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-            state.scanner.start({ facingMode: "environment" }, config, (decodedText) => {
-                const now = Date.now();
-                // Cooldown: prevent same resi from scanning twice within 2 seconds
-                if(decodedText === state.lastScannedResi && (now - state.lastScanTime < 2000)) return;
-
-                state.lastScannedResi = decodedText;
-                state.lastScanTime = now;
-                
-                processResiScan(decodedText, document.getElementById('resiCourier').value, document.getElementById('resiStatus').value);
-            }).catch(err => {
-                Swal.fire('Camera Error', 'Gagal mengakses kamera: ' + err, 'error');
-                stopScanner();
-            });
-        }
-
-        function stopScanner() {
-            if(state.scanner) {
-                state.scanner.stop().then(() => {
-                    state.scanner = null;
-                    document.getElementById('startBtn').classList.remove('hidden');
-                    document.getElementById('stopBtn').classList.add('hidden');
-                });
-            }
-        }
-
-        function processResiScan(resi, courier, status) {
-            const resiClean = resi.trim().toUpperCase();
-            if(!resiClean) return;
-
-            const existing = DB.get('receipts');
-            if(existing.find(r => r.resiNumber === resiClean)) {
-                AudioNotify.play('error');
-                // Toast to avoid breaking continuous flow with SweetAlert popup
-                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-                Toast.fire({ icon: 'error', title: 'DUPLICATE: ' + resiClean });
-                return;
-            }
-
-            AudioNotify.play('success');
-            DB.add('receipts', { resiNumber: resiClean, courier: courier, status: status });
-            
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-            Toast.fire({ icon: 'success', title: 'LOGGED: ' + resiClean });
-            
-            if(state.currentPage === 'logistics') renderLogistics(document.getElementById('content'));
-        }
-
-        function processResiManual() {
-            const input = document.getElementById('resiInput');
-            const courier = document.getElementById('resiCourier').value;
-            const status = document.getElementById('resiStatus').value;
-            processResiScan(input.value, courier, status);
-            input.value = '';
-            input.focus();
-        }
-
-        function renderDashboard(container) {
-            const sales = filterByDate(DB.get('sales'));
-            const revenue = sales.reduce((a, b) => a + b.grandTotal, 0);
-            const inventory = DB.get('warehouse');
-            const staff = DB.get('employees');
-
-            container.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    ${renderStatCard('Total Revenue', `Rp ${revenue.toLocaleString()}`, 'fa-money-bill-wave', 'amber')}
-                    ${renderStatCard('Logistics Scans', `${filterByDate(DB.get('receipts')).length}`, 'fa-barcode', 'blue')}
-                    ${renderStatCard('Stock Items', `${inventory.reduce((a, b) => a + b.stock, 0)}`, 'fa-box', 'rose')}
-                    ${renderStatCard('Team Members', `${staff.length}`, 'fa-users', 'emerald')}
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-4xl border dark:border-slate-800">
-                        <h4 class="font-black text-slate-800 dark:text-white uppercase mb-8">Revenue Analysis</h4>
-                        <div id="chartMain"></div>
+                <!-- Tab: Warehouse -->
+                <div id="tab-warehouse" class="tab-content hidden animate-fade-in space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4">
+                            <button onclick="openProductModal()" class="gold-gradient text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-gold-glow flex items-center">
+                                <i class="fas fa-plus-circle mr-2"></i> Tambah Barang Baru
+                            </button>
+                            <button onclick="exportData('products')" class="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-sm text-navy-900 hover:bg-slate-50 transition flex items-center">
+                                <i class="fas fa-file-excel mr-2 text-green-600"></i> Export Excel
+                            </button>
+                        </div>
+                        <div class="relative w-full md:w-96">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="warehouse-search" onkeyup="filterProducts()" placeholder="Cari nama barang atau SKU..." class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-gold-500/20 outline-none">
+                        </div>
                     </div>
-                    <div class="bg-white dark:bg-slate-900 p-8 rounded-4xl border dark:border-slate-800">
-                        <h4 class="font-black text-slate-800 dark:text-white uppercase mb-8">Stock Alerts</h4>
-                        <div class="space-y-4">
-                            ${inventory.filter(i => i.stock < 10).map(i => `
-                                <div class="flex items-center justify-between p-4 bg-rose-50 dark:bg-rose-500/10 rounded-2xl">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 bg-rose-500 text-white rounded-lg flex items-center justify-center font-bold">!</div>
-                                        <p class="text-xs font-bold dark:text-white">${i.name}</p>
-                                    </div>
-                                    <p class="text-xs font-black text-rose-600">${i.stock} LEFT</p>
+
+                    <div class="bg-white rounded-[2.5rem] shadow-premium border border-slate-50 overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-navy-900 text-[10px] font-extrabold text-white/60 uppercase tracking-widest">
+                                <tr>
+                                    <th class="px-8 py-6">Produk</th>
+                                    <th class="px-8 py-6">Kategori</th>
+                                    <th class="px-8 py-6">Stok Tersedia</th>
+                                    <th class="px-8 py-6">Harga Jual</th>
+                                    <th class="px-8 py-6">Status</th>
+                                    <th class="px-8 py-6 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: POS -->
+                <div id="tab-pos" class="tab-content hidden animate-fade-in grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-8 space-y-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex space-x-2 overflow-x-auto pb-2 custom-scrollbar" id="pos-category-filters">
+                                <button class="px-6 py-2 bg-navy-900 text-white rounded-xl text-xs font-bold whitespace-nowrap">Semua</button>
+                                <button class="px-6 py-2 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold whitespace-nowrap">Elektronik</button>
+                                <button class="px-6 py-2 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold whitespace-nowrap">Furniture</button>
+                                <button class="px-6 py-2 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold whitespace-nowrap">Aksesoris</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6" id="pos-product-grid">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+                    <div class="lg:col-span-4 h-full">
+                        <div class="bg-white rounded-[2.5rem] shadow-premium border border-slate-100 flex flex-col sticky top-28 max-h-[calc(100vh-140px)]">
+                            <div class="p-6 border-b border-slate-50">
+                                <h4 class="font-extrabold text-navy-900 flex items-center">
+                                    <i class="fas fa-shopping-cart mr-2 text-gold-500"></i> Keranjang Belanja
+                                </h4>
+                            </div>
+                            <div id="pos-cart-items" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                                <!-- Cart Items -->
+                                <div class="text-center py-10 opacity-20">
+                                    <i class="fas fa-basket-shopping text-6xl mb-4"></i>
+                                    <p class="font-bold text-sm">Keranjang Kosong</p>
                                 </div>
-                            `).join('') || '<p class="text-center text-slate-400 py-10">No stock alerts</p>'}
+                            </div>
+                            <div class="p-6 bg-slate-50 border-t border-slate-100 space-y-4">
+                                <div class="flex justify-between text-sm font-medium text-slate-500">
+                                    <span>Subtotal</span>
+                                    <span id="pos-subtotal">Rp 0</span>
+                                </div>
+                                <div class="flex justify-between text-sm font-medium text-slate-500">
+                                    <span>Pajak (PPN 11%)</span>
+                                    <span id="pos-tax">Rp 0</span>
+                                </div>
+                                <div class="flex justify-between text-2xl font-black text-navy-900 pt-4 border-t border-slate-200">
+                                    <span>Total</span>
+                                    <span id="pos-total">Rp 0</span>
+                                </div>
+                                <button onclick="checkoutPOS()" class="w-full py-4 gold-gradient text-white rounded-2xl font-bold text-lg shadow-gold-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                                    PROSES PEMBAYARAN
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            `;
 
-            new ApexCharts(document.querySelector("#chartMain"), {
-                series: [{ name: 'Income', data: sales.map(s => s.grandTotal) }],
-                chart: { type: 'area', height: 350, toolbar: { show: false }, theme: { mode: state.theme } },
-                colors: ['#d4af37'],
-                stroke: { curve: 'smooth', width: 3 },
-                xaxis: { categories: sales.map(s => new Date(s.createdAt).toLocaleDateString()) }
-            }).render();
-        }
+                <!-- Tab: HRD -->
+                <div id="tab-hrd" class="tab-content hidden animate-fade-in space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-navy-900 p-8 rounded-3xl text-white relative overflow-hidden group">
+                            <div class="relative z-10">
+                                <p class="text-white/60 text-[10px] font-extrabold uppercase tracking-widest mb-1">Total Karyawan</p>
+                                <h3 class="text-3xl font-black mb-4">42 <span class="text-xs text-white/40 font-normal">Active</span></h3>
+                                <div class="w-16 h-1 gold-gradient rounded-full"></div>
+                            </div>
+                            <i class="fas fa-users absolute -right-4 -bottom-4 text-8xl text-white/5 group-hover:scale-110 transition-transform"></i>
+                        </div>
+                        <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-50 flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-[10px] font-extrabold uppercase tracking-widest mb-1">Kehadiran Hari Ini</p>
+                                <h3 class="text-3xl font-black text-navy-900">98%</h3>
+                            </div>
+                            <div class="w-16 h-16 rounded-full border-4 border-slate-100 border-t-gold-500 flex items-center justify-center font-bold text-xs text-gold-600">
+                                41/42
+                            </div>
+                        </div>
+                        <div class="bg-white p-8 rounded-3xl shadow-premium border border-slate-50">
+                            <p class="text-slate-400 text-[10px] font-extrabold uppercase tracking-widest mb-1">Estimasi Payroll Bulan Ini</p>
+                            <h3 id="hrd-payroll-est" class="text-2xl font-black text-navy-900">Rp 285,400,000</h3>
+                        </div>
+                    </div>
 
-        function renderStatCard(label, val, icon, color) {
-            const themes = {
-                amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600',
-                blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600',
-                rose: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600',
-                emerald: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-            };
-            return `
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-4xl border dark:border-slate-800 shadow-sm">
-                    <div class="w-12 h-12 ${themes[color]} rounded-2xl flex items-center justify-center mb-4"><i class="fa ${icon} text-xl"></i></div>
-                    <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest">${label}</p>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white mt-1">${val}</h3>
+                    <div class="bg-white rounded-[2.5rem] shadow-premium border border-slate-50 overflow-hidden">
+                        <div class="p-8 flex items-center justify-between border-b border-slate-50">
+                            <h4 class="font-extrabold text-navy-900">Database Karyawan</h4>
+                            <button onclick="openEmployeeModal()" class="gold-gradient text-white px-5 py-2 rounded-xl font-bold text-xs shadow-gold-glow">
+                                <i class="fas fa-user-plus mr-2"></i> Tambah Karyawan
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-8 py-4">Nama Lengkap</th>
+                                        <th class="px-8 py-4">Divisi / Jabatan</th>
+                                        <th class="px-8 py-4">Status Kerja</th>
+                                        <th class="px-8 py-4">Gaji Pokok</th>
+                                        <th class="px-8 py-4 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hrd-table-body" class="divide-y divide-slate-100">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            `;
-        }
 
-        window.onload = () => {
-            DB.init();
-            if(localStorage.getItem('pn_theme') === 'dark') toggleTheme();
-            setTimeout(() => {
-                document.getElementById('mainLoader').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-            }, 1000);
+                <!-- Tab: Reports (Profit & Loss) -->
+                <div id="tab-reports" class="tab-content hidden animate-fade-in space-y-8">
+                    <div class="max-w-4xl mx-auto bg-white p-12 rounded-[3rem] shadow-premium border border-slate-100 printable-area relative">
+                        <!-- Watermark -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+                            <i class="fas fa-crown text-[20rem] text-navy-900"></i>
+                        </div>
+
+                        <div class="flex justify-between items-start mb-12 border-b-2 border-slate-100 pb-8 relative z-10">
+                            <div>
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center shadow-gold-glow">
+                                        <i class="fas fa-gem text-white"></i>
+                                    </div>
+                                    <h2 class="text-2xl font-black text-navy-900 tracking-tighter">POETRANURI <span class="text-gold-500">GROUP</span></h2>
+                                </div>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Laporan Laba Rugi Komprehensif</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-extrabold text-navy-900" id="report-period-text">Mei 2024</p>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Waktu Cetak: 24/05/2024 14:00</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6 relative z-10">
+                            <!-- Revenue -->
+                            <section>
+                                <h5 class="bg-navy-900 text-white px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest mb-4">I. PENDAPATAN (REVENUE)</h5>
+                                <div class="px-4 space-y-3">
+                                    <div class="flex justify-between text-sm font-medium">
+                                        <span>Penjualan Bersih (POS)</span>
+                                        <span id="rep-income-sales">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm font-medium">
+                                        <span>Pendapatan Operasional Lainnya</span>
+                                        <span>Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-black text-navy-900 border-t border-slate-100 pt-3 mt-3">
+                                        <span>TOTAL PENDAPATAN (A)</span>
+                                        <span id="rep-total-income">Rp 0</span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Expenses -->
+                            <section>
+                                <h5 class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest mb-4">II. BEBAN PENGELUARAN (EXPENSES)</h5>
+                                <div class="px-4 space-y-3">
+                                    <div class="flex justify-between text-sm font-medium">
+                                        <span>Beban Gaji Karyawan (Payroll)</span>
+                                        <span id="rep-exp-payroll">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm font-medium">
+                                        <span>Beban Pembelian Stok (Purchasing)</span>
+                                        <span id="rep-exp-purchase">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm font-medium">
+                                        <span>Beban Operasional & Utilitas</span>
+                                        <span>Rp 12.500.000</span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-black text-red-600 border-t border-slate-100 pt-3 mt-3">
+                                        <span>TOTAL BEBAN (B)</span>
+                                        <span id="rep-total-expense">Rp 0</span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Final Profit -->
+                            <div class="mt-12 p-8 gold-gradient rounded-3xl text-white flex justify-between items-center shadow-gold-glow">
+                                <div>
+                                    <h4 class="text-xl font-black uppercase tracking-widest">LABA BERSIH (NET PROFIT)</h4>
+                                    <p class="text-white/60 text-xs font-medium italic">Hasil setelah pajak dan seluruh biaya operasional</p>
+                                </div>
+                                <h2 id="rep-net-profit" class="text-4xl font-black tracking-tighter">Rp 0</h2>
+                            </div>
+                        </div>
+
+                        <div class="mt-20 flex justify-between items-end border-t border-slate-100 pt-12 relative z-10 no-print">
+                             <div class="flex space-x-3">
+                                 <button onclick="window.print()" class="bg-navy-900 text-white px-8 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition-all">
+                                     <i class="fas fa-print mr-2"></i> Print Report
+                                 </button>
+                                 <button onclick="exportData('report')" class="bg-slate-100 text-navy-900 px-8 py-3 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all">
+                                     <i class="fas fa-file-pdf mr-2"></i> Export PDF
+                                 </button>
+                             </div>
+                             <div class="text-center w-48 border-t border-slate-200 pt-4">
+                                 <p class="text-xs font-black text-navy-900">Naufal Putra</p>
+                                 <p class="text-[10px] text-slate-400 font-bold uppercase">CEO PoetraNuri Group</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Product CRUD -->
+    <div id="modal-product" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl animate-slide-up overflow-hidden">
+            <div class="bg-navy-900 p-6 text-white flex justify-between items-center">
+                <h4 class="font-bold flex items-center"><i class="fas fa-box-open mr-2 text-gold-500"></i> Kelola Master Barang</h4>
+                <button onclick="closeModal('modal-product')" class="w-8 h-8 rounded-full hover:bg-white/10 transition-colors"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="product-form" class="p-8 space-y-5">
+                <input type="hidden" id="p-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Nama Produk</label>
+                        <input type="text" id="p-name" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:border-gold-500 outline-none transition" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Kategori</label>
+                        <select id="p-category" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none">
+                            <option>Elektronik</option>
+                            <option>Furniture</option>
+                            <option>Aksesoris</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Stok Awal</label>
+                        <input type="number" id="p-stock" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Harga Beli</label>
+                        <input type="number" id="p-price-buy" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Harga Jual</label>
+                        <input type="number" id="p-price-sell" class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-4 gold-gradient text-white rounded-2xl font-bold shadow-gold-glow hover:scale-[1.02] transition-all">SIMPAN DATA PRODUK</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        /* 
+         * POETRANURI ERP - CORE DATABASE LOGIC (LOCALSTORAGE)
+         */
+        const STORAGE_KEY = 'POETRANURI_ERP_DB_V2';
+        
+        let db = {
+            currentUser: null,
+            products: [
+                { id: 1, name: 'MacBook Pro M3 Max 16"', category: 'Elektronik', stock: 12, buy: 42000000, sell: 58000000, sku: 'ELE-MAC-001' },
+                { id: 2, name: 'Herman Miller Embody Chair', category: 'Furniture', stock: 5, buy: 18000000, sell: 32500000, sku: 'FUR-HMC-002' },
+                { id: 3, name: 'Logitech MX Master 3S', category: 'Elektronik', stock: 25, buy: 1200000, sell: 1899000, sku: 'ELE-MOU-003' },
+                { id: 4, name: 'Ergonomic Stand Desk 1.4m', category: 'Furniture', stock: 8, buy: 4500000, sell: 7200000, sku: 'FUR-DSK-004' }
+            ],
+            employees: [
+                { id: 1, name: 'Budi Santoso', role: 'Staff Gudang', dept: 'Operations', status: 'Permanent', salary: 8500000 },
+                { id: 2, name: 'Siti Aminah', role: 'Accountant', dept: 'Finance', status: 'Permanent', salary: 12000000 },
+                { id: 3, name: 'Rendi Wijaya', role: 'Purchasing Officer', dept: 'Supply Chain', status: 'Contract', salary: 7500000 }
+            ],
+            transactions: [
+                { id: 'TRX-1001', type: 'SALE', entity: 'Walk-in Customer', amount: 15800000, status: 'PAID', date: '2024-05-22' },
+                { id: 'TRX-1002', type: 'SALE', entity: 'Apple Indonesia Store', amount: 58000000, status: 'PAID', date: '2024-05-23' },
+                { id: 'EXP-1001', type: 'EXPENSE', entity: 'Vendor Listrik PLN', amount: 3500000, status: 'PAID', date: '2024-05-24' }
+            ],
+            cart: []
         };
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        // Initialize DB
+        function initDB() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                db = JSON.parse(saved);
+            } else {
+                saveDB();
+            }
+        }
+
+        function saveDB() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        }
+
+        /* 
+         * AUTHENTICATION & ROUTING 
+         */
+        const loginForm = document.getElementById('login-form');
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const pass = document.getElementById('loginPass').value;
-            if(pass !== '12345') return Swal.fire('Error', 'Passcode salah', 'error');
+            const role = document.getElementById('login-role').value;
+            const user = document.getElementById('login-user').value;
+
+            // Simple Auth Bypass for Demo
+            db.currentUser = {
+                name: user === 'admin' ? 'Naufal Putra' : user,
+                role: role,
+                avatar: `https://ui-avatars.com/api/?name=${user}&background=001f3f&color=fff`
+            };
             
-            state.currentUser = { name: 'Admin', role: document.getElementById('loginRole').value };
-            document.getElementById('userNameDisplay').innerText = state.currentUser.name;
-            document.getElementById('userRoleDisplay').innerText = state.currentUser.role;
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainUI').classList.remove('hidden');
-            route('dashboard');
+            saveDB();
+            renderAuthView();
+            Swal.fire({
+                title: 'Akses Diberikan',
+                text: `Selamat datang di PoetraNuri ERP, ${db.currentUser.name}`,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
         });
 
-        function logout() { location.reload(); }
+        function logout() {
+            db.currentUser = null;
+            saveDB();
+            renderAuthView();
+        }
 
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('themeIcon');
-            if(html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.classList.replace('fa-sun', 'fa-moon');
-                state.theme = 'light';
+        function renderAuthView() {
+            const authPage = document.getElementById('auth-page');
+            const mainLayout = document.getElementById('main-layout');
+            
+            if (db.currentUser) {
+                authPage.classList.add('hidden');
+                mainLayout.classList.remove('hidden');
+                document.getElementById('user-display-name').innerText = db.currentUser.name;
+                document.getElementById('user-display-role').innerText = db.currentUser.role;
+                document.getElementById('user-display-avatar').src = db.currentUser.avatar;
+                
+                buildMenu(db.currentUser.role);
+                switchTab('dashboard');
             } else {
-                html.classList.add('dark');
-                icon.classList.replace('fa-moon', 'fa-sun');
-                state.theme = 'dark';
+                authPage.classList.remove('hidden');
+                mainLayout.classList.add('hidden');
             }
-            localStorage.setItem('pn_theme', state.theme);
-            if(['dashboard', 'logistics'].includes(state.currentPage)) route(state.currentPage);
         }
 
-        function toggleSidebar() {
-            const s = document.getElementById('sidebar');
-            const txt = document.querySelectorAll('.sidebar-txt');
-            if(s.classList.contains('w-72')) { s.classList.replace('w-72', 'w-20'); txt.forEach(t => t.classList.add('hidden')); }
-            else { s.classList.replace('w-20', 'w-72'); txt.forEach(t => t.classList.remove('hidden')); }
-        }
+        function buildMenu(role) {
+            const nav = document.getElementById('sidebar-nav');
+            nav.innerHTML = '';
+            
+            const menus = [
+                { id: 'dashboard', label: 'Dashboard Analitik', icon: 'fa-chart-pie', roles: ['Admin', 'Owner', 'Finance', 'HRD', 'Staff'] },
+                { id: 'warehouse', label: 'Manajemen Gudang', icon: 'fa-box-open', roles: ['Admin', 'Owner', 'Staff'] },
+                { id: 'pos', label: 'Point of Sale (POS)', icon: 'fa-cash-register', roles: ['Admin', 'Owner', 'Staff'] },
+            ];
 
-        function filterByDate(data) {
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            return data.filter(item => {
-                const itemDate = new Date(item.createdAt);
-                const itemDay = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
-                switch(state.filter) {
-                    case 'today': return itemDay.getTime() === today.getTime();
-                    case 'yesterday':
-                        const yest = new Date(today); yest.setDate(today.getDate() - 1);
-                        return itemDay.getTime() === yest.getTime();
-                    case 'last7':
-                        const l7 = new Date(today); l7.setDate(today.getDate() - 7);
-                        return itemDate >= l7;
-                    case 'last30':
-                        const l30 = new Date(today); l30.setDate(today.getDate() - 30);
-                        return itemDate >= l30;
-                    case 'thisMonth':
-                        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-                    case 'thisYear':
-                        return itemDate.getFullYear() === now.getFullYear();
-                    case 'custom':
-                        if(!state.dateRange.from || !state.dateRange.to) return true;
-                        return itemDate >= new Date(state.dateRange.from) && itemDate <= new Date(state.dateRange.to + 'T23:59:59');
-                    default: return true;
+            menus.forEach(m => {
+                if (m.roles.includes(role)) {
+                    const a = document.createElement('a');
+                    a.href = "#";
+                    a.onclick = () => switchTab(m.id);
+                    a.className = "nav-link group flex items-center space-x-3 px-4 py-3 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 transition-all";
+                    a.innerHTML = `<i class="fas ${m.icon} w-6 text-center text-gold-500"></i><span class="font-semibold text-sm">${m.label}</span>`;
+                    a.dataset.tabId = m.id;
+                    nav.appendChild(a);
                 }
             });
         }
 
-        function applyGlobalFilter() {
-            state.filter = document.getElementById('globalDateFilter').value;
-            const customBox = document.getElementById('customDateRange');
-            if(state.filter === 'custom') {
-                customBox.classList.remove('hidden');
-                state.dateRange.from = document.getElementById('dateFrom').value;
-                state.dateRange.to = document.getElementById('dateTo').value;
-            } else { customBox.classList.add('hidden'); }
-            route(state.currentPage);
-        }
-
-        function exportCSV(tableId, filename) {
-            const table = document.getElementById(tableId);
-            let csv = [];
-            for (let i = 0; i < table.rows.length; i++) {
-                let row = [], cols = table.rows[i].querySelectorAll("td, th");
-                // Skip rows without td/th (like filter row) and skip action column
-                if(cols.length === 0 || table.rows[i].classList.contains('border-b')) continue;
-                for (let j = 0; j < cols.length - 1; j++) row.push('"' + cols[j].innerText.trim().replace(/"/g, '""') + '"');
-                csv.push(row.join(","));
-            }
-            const blob = new Blob([csv.join("\n")], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.setAttribute('href', url); a.setAttribute('download', filename);
-            a.click();
-        }
-
-        function deleteItem(key, id) { 
-            Swal.fire({ title: 'Hapus data?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444' })
-            .then(r => { if(r.isConfirmed) { DB.delete(key, id); route(state.currentPage); } }); 
-        }
-
-        function renderWarehouse(c) {
-            const data = DB.get('warehouse');
-            c.innerHTML = `
-                <div class="bg-white dark:bg-slate-900 rounded-4xl border dark:border-slate-800 shadow-sm p-8">
-                    <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-xl font-black uppercase dark:text-white">Inventory</h3>
-                        <button onclick="openModal('add-product')" class="px-6 py-3 bg-amber-500 text-white rounded-xl text-xs font-bold">+ ADD ITEM</button>
-                    </div>
-                    <table class="w-full text-left">
-                        <thead class="text-slate-400 text-[10px] uppercase font-black">
-                            <tr><th class="py-4">Name</th><th class="py-4">Stock</th><th class="py-4">Price</th><th class="py-4">Delete</th></tr>
-                        </thead>
-                        <tbody class="divide-y dark:divide-slate-800">
-                            ${data.map(p => `
-                                <tr>
-                                    <td class="py-4 font-bold dark:text-white">${p.name}</td>
-                                    <td class="py-4 text-amber-500 font-black">${p.stock}</td>
-                                    <td class="py-4 text-xs">Rp ${p.sellPrice.toLocaleString()}</td>
-                                    <td class="py-4"><button onclick="deleteItem('warehouse', ${p.id})"><i class="fa fa-trash"></i></button></td>
-                                </tr>
-                            `).join('') || '<tr><td colspan="4" class="p-10 text-center">Empty</td></tr>'}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        function openModal(type) {
-            const overlay = document.getElementById('modalOverlay');
-            overlay.classList.replace('hidden', 'flex');
-            const box = document.getElementById('modalBox');
-            setTimeout(() => { box.classList.remove('scale-95', 'opacity-0'); }, 10);
+        function switchTab(tabId) {
+            // UI Switch
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             
-            let html = `<div class="p-10"><h3 class="text-2xl font-black uppercase dark:text-white mb-8">${type.replace('-',' ')}</h3><form id="modalForm" class="space-y-6">`;
-            if(type === 'add-product') {
-                html += `<input required name="name" placeholder="Item Name" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">
-                         <div class="grid grid-cols-2 gap-4">
-                            <input required name="stock" type="number" placeholder="Stock" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">
-                            <input required name="sellPrice" type="number" placeholder="Price" class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">
-                         </div>`;
-            } else if(type === 'add-employee') {
-                html += `<input required name="name" placeholder="Name" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">
-                         <input required name="position" placeholder="Position" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">
-                         <input required name="salary" type="number" placeholder="Salary" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl dark:text-white outline-none">`;
-            }
-            html += `<div class="flex space-x-4"><button type="button" onclick="closeModal()" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 dark:text-white rounded-2xl font-bold">CANCEL</button>
-                    <button type="submit" class="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-bold">SAVE</button></div></form></div>`;
-            
-            document.getElementById('modalContent').innerHTML = html;
-            document.getElementById('modalForm').onsubmit = (e) => {
-                e.preventDefault();
-                const fd = new FormData(e.target);
-                const obj = Object.fromEntries(fd.entries());
-                const key = type === 'add-product' ? 'warehouse' : 'employees';
-                DB.add(key, obj);
-                closeModal();
-                route(state.currentPage);
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('sidebar-item-active'));
+            const activeLink = document.querySelector(`[data-tab-id="${tabId}"]`);
+            if (activeLink) activeLink.classList.add('sidebar-item-active');
+
+            // Title Update
+            const titles = {
+                dashboard: { t: "Dashboard Analitik", s: "Overview performa bisnis realtime hari ini" },
+                warehouse: { t: "Manajemen Gudang", s: "Kelola stok produk, kategori, dan pergerakan barang" },
+                pos: { t: "Sistem Kasir Modern", s: "Entri transaksi penjualan ritel dengan cepat" },
+                hrd: { t: "Manajemen Karyawan", s: "Database SDM, absensi, dan payroll terpusat" },
+                finance: { t: "Finance & Ledger", s: "Arus kas, pengeluaran, dan buku besar umum" },
+                reports: { t: "Financial Report", s: "Laporan performa laba rugi perusahaan" }
             };
+
+            document.getElementById('current-tab-title').innerText = titles[tabId].t;
+            document.getElementById('current-tab-subtitle').innerText = titles[tabId].s;
+
+            // Load Module Data
+            if (tabId === 'dashboard') initDashboardCharts();
+            if (tabId === 'warehouse') renderInventory();
+            if (tabId === 'pos') renderPOS();
+            if (tabId === 'hrd') renderHRD();
+            if (tabId === 'reports') renderReportData();
         }
 
-        function closeModal() {
-            const overlay = document.getElementById('modalOverlay');
-            const box = document.getElementById('modalBox');
-            box.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { overlay.classList.replace('flex', 'hidden'); }, 300);
-        }
-
-        function renderSettings(container) {
-            container.innerHTML = `
-                <div class="max-w-xl mx-auto space-y-8">
-                    <div class="bg-white dark:bg-slate-900 p-10 rounded-5xl border dark:border-slate-800 text-center shadow-sm">
-                        <div class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6"><i class="fa fa-database text-3xl"></i></div>
-                        <h3 class="text-2xl font-black uppercase text-slate-800 dark:text-white">Database Management</h3>
-                        <div class="mt-10 space-y-4">
-                            <button onclick="seedDemoData()" class="w-full py-5 bg-amber-600 text-white rounded-2xl font-black">SEED DEMO DATA</button>
-                            <button onclick="localStorage.clear(); DB.init(); route('dashboard');" class="w-full py-5 bg-rose-50 text-rose-500 rounded-2xl font-black">PURGE DATABASE</button>
+        /* 
+         * MODULE: WAREHOUSE (INVENTORY)
+         */
+        function renderInventory() {
+            const tbody = document.getElementById('inventory-table-body');
+            tbody.innerHTML = '';
+            db.products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-8 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center font-bold text-[10px] text-slate-400">IMG</div>
+                            <div>
+                                <p class="text-sm font-bold text-navy-900">${p.name}</p>
+                                <p class="text-[10px] font-mono font-bold text-slate-400">${p.sku}</p>
+                            </div>
                         </div>
+                    </td>
+                    <td class="px-8 py-4"><span class="text-xs font-bold text-slate-500">${p.category}</span></td>
+                    <td class="px-8 py-4 font-black text-navy-900">${p.stock} Unit</td>
+                    <td class="px-8 py-4 font-bold text-gold-600">Rp ${p.sell.toLocaleString()}</td>
+                    <td class="px-8 py-4">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold ${p.stock > 5 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${p.stock > 5 ? 'STOK AMAN' : 'STOK TIPIS'}
+                        </span>
+                    </td>
+                    <td class="px-8 py-4 text-center space-x-2">
+                        <button onclick="editProduct(${p.id})" class="text-slate-400 hover:text-gold-600 transition"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct(${p.id})" class="text-slate-400 hover:text-red-500 transition"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openProductModal() {
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('modal-product').style.display = 'flex';
+        }
+
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            const product = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('p-name').value,
+                category: document.getElementById('p-category').value,
+                stock: parseInt(document.getElementById('p-stock').value),
+                buy: parseInt(document.getElementById('p-price-buy').value),
+                sell: parseInt(document.getElementById('p-price-sell').value),
+                sku: id ? db.products.find(x => x.id == id).sku : 'SKU-' + Math.floor(Math.random() * 9000 + 1000)
+            };
+
+            if (id) {
+                const idx = db.products.findIndex(p => p.id == id);
+                db.products[idx] = product;
+            } else {
+                db.products.push(product);
+            }
+
+            saveDB();
+            closeModal('modal-product');
+            renderInventory();
+            Swal.fire('Berhasil', 'Data produk telah diperbarui', 'success');
+        });
+
+        /* 
+         * MODULE: POS (POINT OF SALE)
+         */
+        function renderPOS() {
+            const grid = document.getElementById('pos-product-grid');
+            grid.innerHTML = '';
+            db.products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-3xl border border-slate-100 hover:border-gold-500 shadow-sm hover:shadow-premium transition-all cursor-pointer group";
+                card.onclick = () => addToCart(p);
+                card.innerHTML = `
+                    <div class="h-32 bg-slate-50 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                        <i class="fas fa-box text-3xl text-slate-200 group-hover:scale-110 transition"></i>
                     </div>
-                </div>
-            `;
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${p.category}</p>
+                    <h5 class="text-sm font-black text-navy-900 truncate mb-2">${p.name}</h5>
+                    <p class="text-gold-600 font-black">Rp ${p.sell.toLocaleString()}</p>
+                `;
+                grid.appendChild(card);
+            });
+            updateCartUI();
         }
 
-        function seedDemoData() {
-            DB.set('warehouse', [{id:1,name:'Espresso Beans 1kg',stock:50,sellPrice:250000,createdAt:new Date().toISOString()}]);
-            DB.set('employees', [{id:1,name:'Budi',position:'Manager',salary:8000000,createdAt:new Date().toISOString()}]);
-            DB.set('sales', [{id:1,items:[],grandTotal:1250000,createdAt:new Date().toISOString()}]);
-            Swal.fire('Data Seeded!', '', 'success').then(() => route('dashboard'));
+        function addToCart(p) {
+            if (p.stock <= 0) return Swal.fire('Stok Habis', 'Produk tidak tersedia', 'error');
+            const exists = db.cart.find(i => i.id === p.id);
+            if (exists) {
+                exists.qty++;
+            } else {
+                db.cart.push({ ...p, qty: 1 });
+            }
+            updateCartUI();
         }
 
-        // Add stubs for missing routes to prevent errors
-        function renderSales(c) { c.innerHTML = '<div class="p-10 text-center dark:text-white">Sales POS Module Active</div>'; }
-        function renderSalesReport(c) { c.innerHTML = '<div class="p-10 text-center dark:text-white">Sales Reports Module Active</div>'; }
-        function renderHRD(c) { c.innerHTML = '<div class="p-10 text-center dark:text-white">HRD Module Active</div>'; }
-        function renderFinance(c) { c.innerHTML = '<div class="p-10 text-center dark:text-white">Finance Module Active</div>'; }
+        function updateCartUI() {
+            const container = document.getElementById('pos-cart-items');
+            container.innerHTML = '';
+            let subtotal = 0;
 
+            if (db.cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 opacity-20">
+                        <i class="fas fa-basket-shopping text-6xl mb-4"></i>
+                        <p class="font-bold text-sm">Keranjang Kosong</p>
+                    </div>`;
+            } else {
+                db.cart.forEach((item, idx) => {
+                    subtotal += item.sell * item.qty;
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center bg-slate-50 p-4 rounded-2xl animate-fade-in";
+                    el.innerHTML = `
+                        <div class="flex-1">
+                            <h6 class="text-xs font-black text-navy-900 truncate">${item.name}</h6>
+                            <p class="text-[10px] text-slate-400 font-bold">@ Rp ${item.sell.toLocaleString()}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 mx-4">
+                            <button onclick="updateQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-[10px]"><i class="fas fa-minus"></i></button>
+                            <span class="text-xs font-black text-navy-900">${item.qty}</span>
+                            <button onclick="updateQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-[10px]"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <p class="text-xs font-black text-gold-600">Rp ${(item.sell * item.qty).toLocaleString()}</p>
+                    `;
+                    container.appendChild(el);
+                });
+            }
+
+            const tax = subtotal * 0.11;
+            const total = subtotal + tax;
+            document.getElementById('pos-subtotal').innerText = 'Rp ' + subtotal.toLocaleString();
+            document.getElementById('pos-tax').innerText = 'Rp ' + tax.toLocaleString();
+            document.getElementById('pos-total').innerText = 'Rp ' + total.toLocaleString();
+        }
+
+        function updateQty(idx, delta) {
+            db.cart[idx].qty += delta;
+            if (db.cart[idx].qty <= 0) db.cart.splice(idx, 1);
+            updateCartUI();
+        }
+
+        function checkoutPOS() {
+            if (db.cart.length === 0) return Swal.fire('Gagal', 'Keranjang belanja masih kosong', 'warning');
+            
+            Swal.fire({
+                title: 'Konfirmasi Pembayaran',
+                text: 'Pastikan uang yang diterima sudah sesuai.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'PROSES BAYAR',
+                confirmButtonColor: '#001f3f'
+            }).then(res => {
+                if (res.isConfirmed) {
+                    const subtotal = db.cart.reduce((a, b) => a + (b.sell * b.qty), 0);
+                    const total = subtotal * 1.11;
+                    
+                    // Log to Transactions
+                    db.transactions.unshift({
+                        id: 'TRX-' + Math.floor(Math.random() * 9000 + 1000),
+                        type: 'SALE',
+                        entity: 'Walk-in Customer',
+                        amount: total,
+                        status: 'PAID',
+                        date: new Date().toISOString().split('T')[0]
+                    });
+
+                    // Update Stock
+                    db.cart.forEach(item => {
+                        const p = db.products.find(prod => prod.id === item.id);
+                        if (p) p.stock -= item.qty;
+                    });
+
+                    db.cart = [];
+                    saveDB();
+                    renderPOS();
+                    Swal.fire('Sukses', 'Pembayaran berhasil dan struk dicetak', 'success');
+                }
+            });
+        }
+
+        function initDashboardCharts() {
+            // KPI Data Logic
+            const totalSales = db.transactions.filter(t => t.type === 'SALE').reduce((a,b) => a+b.amount, 0);
+            const totalStock = db.products.reduce((a,b) => a+b.stock, 0);
+            const totalExpenses = db.transactions.filter(t => t.type === 'EXPENSE').reduce((a,b) => a+b.amount, 0);
+            
+            document.getElementById('kpi-sales').innerText = 'Rp ' + totalSales.toLocaleString();
+            document.getElementById('kpi-inventory').innerText = totalStock + ' Unit';
+            document.getElementById('kpi-expense').innerText = 'Rp ' + totalExpenses.toLocaleString();
+            document.getElementById('kpi-employees').innerText = db.employees.length + ' Orang';
+
+            // Chart Sales
+            const optionsSales = {
+                series: [{ name: 'Revenue', data: [35, 52, 41, 67, 48, 82, 110] }],
+                chart: { height: 350, type: 'area', toolbar: { show: false }, zoom: { enabled: false } },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 4, colors: ['#D4AF37'] },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.2, stops: [0, 90, 100] } },
+                xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'] }
+            };
+            document.getElementById('chart-sales-main').innerHTML = '';
+            new ApexCharts(document.querySelector("#chart-sales-main"), optionsSales).render();
+
+            // Chart Allocation
+            const optionsPie = {
+                series: [44, 55, 13, 33],
+                chart: { width: 380, type: 'donut' },
+                labels: ['Operational', 'Inventory', 'Payroll', 'Marketing'],
+                colors: ['#001f3f', '#D4AF37', '#6366f1', '#f43f5e'],
+                legend: { position: 'bottom' }
+            };
+            document.getElementById('chart-pie-allocation').innerHTML = '';
+            new ApexCharts(document.querySelector("#chart-pie-allocation"), optionsPie).render();
+            
+            renderRecentTransactions();
+        }
+
+        function renderRecentTransactions() {
+            const container = document.getElementById('dashboard-recent-tx');
+            container.innerHTML = '';
+            db.transactions.slice(0, 5).forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-8 py-4 font-mono text-[10px] font-bold text-slate-500">${t.id}</td>
+                    <td class="px-8 py-4">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black tracking-widest ${t.type === 'SALE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${t.type}
+                        </span>
+                    </td>
+                    <td class="px-8 py-4 font-bold text-navy-900">${t.entity}</td>
+                    <td class="px-8 py-4 font-black ${t.type === 'SALE' ? 'text-green-600' : 'text-red-600'}">Rp ${t.amount.toLocaleString()}</td>
+                    <td class="px-8 py-4 text-right text-xs text-slate-400 font-bold">${t.date}</td>
+                `;
+                container.appendChild(tr);
+            });
+        }
+
+        function renderHRD() {
+            const tbody = document.getElementById('hrd-table-body');
+            tbody.innerHTML = '';
+            let totalSalary = 0;
+            db.employees.forEach(e => {
+                totalSalary += e.salary;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-8 py-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="https://ui-avatars.com/api/?name=${e.name}&background=random" class="w-8 h-8 rounded-full">
+                            <span class="font-bold text-navy-900 text-sm">${e.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-4">
+                        <p class="text-xs font-bold text-navy-900">${e.role}</p>
+                        <p class="text-[10px] text-slate-400 font-medium">${e.dept}</p>
+                    </td>
+                    <td class="px-8 py-4">
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-gold-600">${e.status}</span>
+                    </td>
+                    <td class="px-8 py-4 font-black text-navy-900">Rp ${e.salary.toLocaleString()}</td>
+                    <td class="px-8 py-4 text-center">
+                        <button class="text-slate-300 hover:text-navy-900"><i class="fas fa-ellipsis-v"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('hrd-payroll-est').innerText = 'Rp ' + totalSalary.toLocaleString();
+        }
+
+        function renderReportData() {
+            const income = db.transactions.filter(t => t.type === 'SALE').reduce((a,b) => a+b.amount, 0);
+            const expPurchase = db.products.reduce((a,b) => a + (b.buy * (b.stock > 0 ? 1 : 0)), 0); // Simulation
+            const expPayroll = db.employees.reduce((a,b) => a+b.salary, 0);
+            const totalExp = expPurchase + expPayroll + 12500000;
+            
+            document.getElementById('rep-income-sales').innerText = 'Rp ' + income.toLocaleString();
+            document.getElementById('rep-total-income').innerText = 'Rp ' + income.toLocaleString();
+            document.getElementById('rep-exp-payroll').innerText = 'Rp ' + expPayroll.toLocaleString();
+            document.getElementById('rep-exp-purchase').innerText = 'Rp ' + expPurchase.toLocaleString();
+            document.getElementById('rep-total-expense').innerText = 'Rp ' + totalExp.toLocaleString();
+            document.getElementById('rep-net-profit').innerText = 'Rp ' + (income - totalExp).toLocaleString();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Window Lifecycle
+        window.onload = () => {
+            initDB();
+            
+            // Artificial Loading
+            setTimeout(() => {
+                const loader = document.getElementById('loader-overlay');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.classList.add('hidden'), 500);
+                renderAuthView();
+            }, 1500);
+        };
+        
     </script>
 </body>
 </html>
