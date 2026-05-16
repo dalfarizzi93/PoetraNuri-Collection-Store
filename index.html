@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Library untuk Scan QR & Barcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -36,6 +38,20 @@
         .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
         .btn-premium { transition: all 0.3s; position: relative; overflow: hidden; }
         .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
+        
+        /* Scanner Styling */
+        #reader { border: none !important; border-radius: 1.5rem; overflow: hidden; }
+        #reader video { border-radius: 1.5rem; object-fit: cover; }
+        #reader__dashboard_section_csr button {
+            background-color: var(--gold) !important;
+            color: white !important;
+            padding: 8px 16px !important;
+            border-radius: 10px !important;
+            text-transform: uppercase !important;
+            font-weight: bold !important;
+            font-size: 10px !important;
+        }
+
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -178,12 +194,6 @@
         </div>
     </div>
 
-    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
-        <div id="modalBox" class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-5xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
-            <div id="modalContent"></div>
-        </div>
-    </div>
-
     <script>
         const DB = {
             init: () => {
@@ -211,7 +221,8 @@
             filter: 'today',
             dateRange: { from: null, to: null },
             cart: [],
-            theme: 'light'
+            theme: 'light',
+            scanner: null
         };
 
         const AudioNotify = {
@@ -224,13 +235,13 @@
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 if(type === 'success') {
-                    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(880, this.ctx.currentTime); // High pitch
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
                     osc.start(); osc.stop(this.ctx.currentTime + 0.2);
                 } else {
-                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime); // Low buzz
                     osc.type = 'sawtooth';
                     gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
@@ -281,6 +292,12 @@
         function logout() { location.reload(); }
 
         function route(page) {
+            // Stop scanner if moving away from logistics
+            if(state.scanner && page !== 'logistics') {
+                state.scanner.clear();
+                state.scanner = null;
+            }
+
             state.currentPage = page;
             const container = document.getElementById('content');
             const title = document.getElementById('pageTitle');
@@ -376,13 +393,22 @@
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                     <div class="bg-white dark:bg-slate-900 p-8 rounded-4xl border dark:border-slate-800 shadow-sm h-fit">
                         <h3 class="text-xl font-black uppercase text-slate-800 dark:text-white mb-6">Scanner Interaction</h3>
+                        
+                        <!-- QR Scanner Area -->
+                        <div id="scannerSection" class="mb-6">
+                            <div id="reader" class="w-full bg-slate-100 dark:bg-slate-800"></div>
+                            <button id="cameraToggle" onclick="toggleCamera()" class="w-full mt-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-white rounded-2xl font-black text-xs flex items-center justify-center space-x-2">
+                                <i class="fa fa-camera"></i> <span>START QR SCANNER</span>
+                            </button>
+                        </div>
+
                         <div class="space-y-6">
                             <div>
-                                <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Barcode Resi</label>
+                                <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Barcode / Manual Resi</label>
                                 <input type="text" id="resiInput" placeholder="Scan or Type..." class="w-full mt-2 p-4 bg-slate-50 dark:bg-slate-800 dark:text-white border-2 border-transparent focus:border-amber-500 rounded-2xl outline-none font-mono" onkeypress="if(event.key==='Enter') processResiScan()">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
-                                <select id="resiCourier" class="p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none"><option>JNE</option><option>J&T</option><option>SiCepat</option></select>
+                                <select id="resiCourier" class="p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none"><option>JNE</option><option>J&T</option><option>SiCepat</option><option>ID Express</option></select>
                                 <select id="resiStatus" class="p-4 bg-slate-50 dark:bg-slate-800 dark:text-white rounded-2xl outline-none"><option>IN</option><option>OUT</option></select>
                             </div>
                             <button onclick="processResiScan()" class="w-full py-5 bg-amber-500 text-white rounded-2xl font-black text-lg">LOG RECEIPT</button>
@@ -396,7 +422,7 @@
                         <div class="overflow-x-auto">
                             <table id="logTable" class="w-full text-left">
                                 <thead class="bg-slate-50 dark:bg-slate-800 text-[10px] font-black text-slate-400 uppercase">
-                                    <tr><th class="px-8 py-4">Time</th><th class="px-8 py-4">Resi No.</th><th class="px-8 py-4">Courier</th><th class="px-8 py-4">Action</th></tr>
+                                    <tr><th class="px-8 py-4">Time</th><th class="px-8 py-4">Resi No.</th><th class="px-8 py-4">Courier</th><th class="px-8 py-4">Status</th><th class="px-8 py-4">Action</th></tr>
                                 </thead>
                                 <tbody class="divide-y dark:divide-slate-800">
                                     ${data.map(r => `
@@ -404,32 +430,82 @@
                                             <td class="px-8 py-5 text-xs text-slate-400">${new Date(r.createdAt).toLocaleString()}</td>
                                             <td class="px-8 py-5 text-sm font-bold dark:text-white">${r.resiNumber}</td>
                                             <td class="px-8 py-5 text-xs">${r.courier}</td>
+                                            <td class="px-8 py-5"><span class="px-2 py-1 text-[10px] font-bold rounded-lg ${r.status === 'IN' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}">${r.status}</span></td>
                                             <td class="px-8 py-5 text-center"><button onclick="deleteItem('receipts', ${r.id})" class="text-rose-500"><i class="fa fa-trash"></i></button></td>
                                         </tr>
-                                    `).reverse().join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-400">No scans found</td></tr>'}
+                                    `).reverse().join('') || '<tr><td colspan="5" class="p-10 text-center text-slate-400">No scans found</td></tr>'}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             `;
-            setTimeout(() => document.getElementById('resiInput').focus(), 100);
+            setTimeout(() => { if(document.getElementById('resiInput')) document.getElementById('resiInput').focus(); }, 100);
         }
 
-        function processResiScan() {
+        function toggleCamera() {
+            const btn = document.getElementById('cameraToggle');
+            if(!state.scanner) {
+                state.scanner = new Html5Qrcode("reader");
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                state.scanner.start({ facingMode: "environment" }, config, (decodedText) => {
+                    // Berhasil scan QR
+                    processResiScan(decodedText);
+                    stopCamera(); // Stop setelah berhasil
+                }).catch(err => {
+                    Swal.fire('Camera Error', 'Izinkan akses kamera untuk melakukan scan.', 'error');
+                    state.scanner = null;
+                });
+                
+                btn.innerHTML = `<i class="fa fa-stop"></i> <span>STOP QR SCANNER</span>`;
+                btn.classList.replace('bg-slate-100', 'bg-rose-500');
+                btn.classList.replace('text-slate-600', 'text-white');
+            } else {
+                stopCamera();
+            }
+        }
+
+        function stopCamera() {
+            if(state.scanner) {
+                state.scanner.stop().then(() => {
+                    state.scanner.clear();
+                    state.scanner = null;
+                    const btn = document.getElementById('cameraToggle');
+                    if(btn) {
+                        btn.innerHTML = `<i class="fa fa-camera"></i> <span>START QR SCANNER</span>`;
+                        btn.classList.replace('bg-rose-500', 'bg-slate-100');
+                        btn.classList.replace('text-white', 'text-slate-600');
+                    }
+                });
+            }
+        }
+
+        function processResiScan(decodedVal = null) {
             const input = document.getElementById('resiInput');
-            const resi = input.value.trim().toUpperCase();
+            const resi = (decodedVal || input.value).trim().toUpperCase();
             if(!resi) return;
+
             const data = DB.get('receipts');
             if(data.find(r => r.resiNumber === resi)) {
                 AudioNotify.play('error');
-                Swal.fire('Duplicate!', 'Nomor resi sudah ada.', 'error');
+                Swal.fire({
+                    title: 'DUPLICATE RESI!',
+                    text: `Nomor resi ${resi} sudah pernah di-scan.`,
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } else {
                 AudioNotify.play('success');
-                DB.add('receipts', { resiNumber: resi, courier: document.getElementById('resiCourier').value, status: document.getElementById('resiStatus').value });
-                route('logistics');
+                DB.add('receipts', { 
+                    resiNumber: resi, 
+                    courier: document.getElementById('resiCourier').value, 
+                    status: document.getElementById('resiStatus').value 
+                });
+                route('logistics'); // Refresh UI
             }
-            input.value = '';
+            if(input) input.value = '';
         }
 
         function renderWarehouse(container) {
@@ -527,18 +603,13 @@
             if(state.cart.length === 0) return;
             const total = state.cart.reduce((a, b) => a + (b.sellPrice * b.qty), 0);
             
-            // Logic: Update Warehouse Stock
             const wh = DB.get('warehouse');
             state.cart.forEach(c => {
                 const p = wh.find(i => i.id === c.id);
                 if(p) p.stock -= c.qty;
             });
             DB.set('warehouse', wh);
-
-            // Logic: Log Sales
             DB.add('sales', { items: [...state.cart], grandTotal: total });
-
-            // Logic: Update Finance
             DB.add('finance', { type: 'Income', amount: total, note: `Sale POS #${Date.now().toString().slice(-6)}` });
 
             state.cart = [];
@@ -791,6 +862,7 @@
                     <div class="bg-white dark:bg-slate-900 p-10 rounded-5xl border dark:border-slate-800 text-center shadow-sm">
                         <div class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6"><i class="fa fa-database text-3xl"></i></div>
                         <h3 class="text-2xl font-black uppercase text-slate-800 dark:text-white">Database Management</h3>
+                        <p class="text-slate-400 text-sm mt-4">Reset all data to default or clear the database.</p>
                         <div class="mt-10 space-y-4">
                             <button onclick="seedDemoData()" class="w-full py-5 bg-slate-950 dark:bg-amber-600 text-white rounded-2xl font-black">SEED DEMO DATA</button>
                             <button onclick="localStorage.clear(); DB.init(); route('dashboard');" class="w-full py-5 bg-rose-50 text-rose-500 rounded-2xl font-black">PURGE ENTIRE DATABASE</button>
@@ -801,7 +873,11 @@
         }
 
         function seedDemoData() {
-            DB.set('warehouse', [{id:1,name:'Arabica Beans 1kg',stock:50,sellPrice:250000},{id:2,name:'Latte Milk Case',stock:15,sellPrice:180000}]);
+            DB.set('warehouse', [
+                {id:1,name:'Arabica Beans 1kg',stock:50,sellPrice:250000},
+                {id:2,name:'Latte Milk Case',stock:15,sellPrice:180000},
+                {id:3,name:'Espresso Blend',stock:5,sellPrice:120000}
+            ]);
             DB.set('employees', [{id:1,name:'Budi Santoso',position:'Admin',salary:10000000}]);
             DB.set('finance', [{id:1,type:'Income',amount:500000,note:'Initial Seed',createdAt:new Date().toISOString()}]);
             Swal.fire('Data Seeded!', '', 'success').then(() => route('dashboard'));
@@ -836,5 +912,13 @@
             `;
         }
     </script>
+
+    <!-- Modal Overlays -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-4">
+        <div id="modalBox" class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-5xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
 </body>
 </html>
